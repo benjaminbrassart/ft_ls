@@ -42,7 +42,7 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
         int err = errno;
 
         print_error("%s (%d)", strerror(err), err);
-        return EXIT_FAILURE;
+        return EXIT_MAJOR;
     }
 
     int file_idx = 0;
@@ -80,7 +80,7 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
                             for (int i = 0; i < file_idx; ++i)
                                 free(files[i]);
                             free(files);
-                            return EXIT_SUCCESS;
+                            return EXIT_OK;
                         }
 
                         print_error(
@@ -123,9 +123,9 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
 
     ctx->files = files;
     ctx->file_count = file_idx;
-    return EXIT_SUCCESS;
+    return EXIT_OK;
 
 _error:
     free(files);
-    return EXIT_FAILURE;
+    return EXIT_MAJOR;
 }

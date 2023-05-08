@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 09:59:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 12:48:18 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 13:10:59 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,18 +25,18 @@ int main(int argc, char const* argv[])
 
     int result = cli_parse(argc, argv, &ctx);
 
-    if (result == EXIT_FAILURE)
-        return EXIT_FAILURE;
+    if (result != EXIT_OK)
+        return EXIT_MAJOR;
 
     if (CHECK_OPT(ctx.options, LSOPT_HELP))
     {
         cli_free(&ctx);
         __usage();
-        return EXIT_SUCCESS;
+        return EXIT_OK;
     }
 
     cli_free(&ctx);
-    return EXIT_SUCCESS;
+    return EXIT_OK;
 }
 
 static char const USAGE_MESSAGE[] =

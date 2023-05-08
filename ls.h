@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 10:20:24 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 12:38:55 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 13:12:33 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,13 @@ extern "C" {
 
 # include "libft/ft.h"
 # include <unistd.h>
+
+// returned when something was successful
+# define EXIT_OK 0
+// returned when something minor went wrong
+# define EXIT_MINOR 1
+// returned when something major went wrong (file access, argument parsing)
+# define EXIT_MAJOR 2
 
 /**
  * Print a formatted error
@@ -81,10 +88,9 @@ void cli_free(LsContext* ctx);
  * @param argv the actual arguments, usually from main(argc, argv)
  * @param ctx the destination context structure
  *
- * @return EXIT_SUCCESS or EXIT_FAILURE
+ * @return EXIT_OK or EXIT_MAJOR
  */
 int cli_parse(int argc, char const* argv[], LsContext* ctx);
-
 
 # ifdef __cplusplus
 }
