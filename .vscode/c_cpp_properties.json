@@ -5,7 +5,9 @@
             "includePath": [
                 "${workspaceFolder}"
             ],
-            "defines": [],
+            "defines": [
+                "_DEFAULT_SOURCE"
+            ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c99",
             "intelliSenseMode": "linux-gcc-x64"
