@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 10:20:24 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 13:59:23 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 17:31:25 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,9 @@ extern "C" {
 # endif
 
 # include "libft/ft.h"
+
 # include <unistd.h>
+# include <sys/stat.h>
 
 // returned when something was successful
 # define EXIT_OK 0
@@ -91,6 +93,12 @@ void cli_free(LsContext* ctx);
  * @return EXIT_OK or EXIT_MAJOR
  */
 int cli_parse(int argc, char const* argv[], LsContext* ctx);
+
+typedef struct file_info
+{
+    char* name;
+    struct stat st;
+} FileInfo;
 
 /**
  * Execute the ls command core
