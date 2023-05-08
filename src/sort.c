@@ -6,11 +6,12 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 14:02:50 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 20:58:16 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 21:05:37 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ls.h"
+#include "libft_ext.h"
 #include "libft/ft.h"
 
 #include <sys/stat.h>
@@ -92,8 +93,7 @@ static int __compare(FileInfo const* f1, FileInfo const* f2, int options, bool d
     if (options & LSOPT_SORT_TIME)
         result = __compare_time(&f1->st.st_mtim, &f2->st.st_mtim);
     else
-        result = ft_strcmp(f1->name,
-            f2->name);
+        result = ft_strcasecmp(f1->name, f2->name);
 
     if (options & LSOPT_REVERSE)
         return -result;

@@ -6,7 +6,7 @@
 #    By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/08 09:55:50 by bbrassar          #+#    #+#              #
-#    Updated: 2023/05/08 18:38:36 by bbrassar         ###   ########.fr        #
+#    Updated: 2023/05/08 21:05:20 by bbrassar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,6 +35,7 @@ SRC := main.c
 SRC += options.c
 SRC += exec.c
 SRC += sort.c
+SRC += libft_ext/ft_strcasecmp.c
 OBJ := $(SRC:%.c=$(DIR_OBJ)/%.o)
 DEP := $(OBJ:.o=.d)
 
