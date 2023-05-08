@@ -6,11 +6,12 @@
 #    By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/08 09:55:50 by bbrassar          #+#    #+#              #
-#    Updated: 2023/05/08 09:59:15 by bbrassar         ###   ########.fr        #
+#    Updated: 2023/05/08 10:11:17 by bbrassar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME := ft_ls
+NAME_LIBFT := libft/libft.a
 
 CC := cc
 CFLAGS := -Wall
@@ -18,6 +19,10 @@ CFLAGS += -Werror
 CFLAGS += -Wextra
 CFLAGS += -c
 CFLAGS += -MMD -MP
+CFLAGS += -I.
+
+LDFLAGS := -L $(dir $(NAME_LIBFT))
+LDLIBS := -lft
 
 RM := rm -vf
 MKDIR := mkdir -vp
@@ -29,14 +34,17 @@ SRC := main.c
 OBJ := $(SRC:%.c=$(DIR_OBJ)/%.o)
 DEP := $(OBJ:.o=.d)
 
-$(NAME): $(OBJ)
-	$(CC) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+$(NAME): $(OBJ) $(NAME_LIBFT)
+	$(CC) $(filter %.o,$^) -o $@ $(LDFLAGS) $(LDLIBS)
 
 $(OBJ): $(DIR_OBJ)/%.o: $(DIR_SRC)/%.c
 	@$(MKDIR) $(@D)
 	$(CC) $(CFLAGS) $< -o $@
 
 -include $(DEP)
+
+$(NAME_LIBFT):
+	$(MAKE) $(MAKEFLAGS) -C $(@D) $(@F)
 
 .PHONY: all clean fclean re
 
