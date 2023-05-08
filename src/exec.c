@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 20:37:20 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 21:36:35 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 #include <sys/dir.h>
 #include <sys/stat.h>
 
-static void __print_file(FileInfo const* file, int first, int last, LsContext* ctx);
+static void __print_file(FileInfo const* file, int first, int last, int options);
 
 /*
 
@@ -89,14 +89,29 @@ int ls_exec(LsContext* ctx)
 
     for (size_t i = 0; i < file_count; ++i)
     {
-        __print_file(&files[i], i == 0, i == file_count - 1, ctx);
+        __print_file(&files[i], i == 0, i == file_count - 1, ctx->options);
         free(files[i].name);
     }
 
     free(files);
 
+    if (dir_count > 0 && file_count > 0)
+        write(STDOUT_FILENO, "\n\n", 2);
+
+    ls_sort(directories, dir_count, ctx->options, false);
+
     for (size_t i = 0; i < dir_count; ++i)
     {
+        // if ((dir_count > 1 && i > 0) || ((CHECK_OPT(ctx->options, LSOPT_RECURSIVE) && file_count > 0)))
+        if (dir_count > 1 || ctx->file_count > dir_count || CHECK_OPT(ctx->options, LSOPT_RECURSIVE))
+        {
+            if (i > 0)
+                write(STDOUT_FILENO, "\n", 1);
+            ft_printf("%s:\n", directories[i].name);
+        }
+
+        // TODO print what is inside directories
+
         free(directories[i].name);
     }
 
@@ -191,9 +206,9 @@ static char __type_char(mode_t mode)
 
 #define __perm_char(Mode, Perm, Char) ((Mode & Perm) ? Char : '-')
 
-static void __print_file(FileInfo const* file, int first, int last, LsContext* ctx)
+static void __print_file(FileInfo const* file, int first, int last, int options)
 {
-    if (CHECK_OPT(ctx->options, LSOPT_LONG))
+    if (CHECK_OPT(options, LSOPT_LONG))
     {
         struct stat const* st = &file->st;
 
@@ -229,6 +244,8 @@ static void __print_file(FileInfo const* file, int first, int last, LsContext* c
         char* mtime = ctime(&st->st_mtim.tv_sec) + 4;
         mtime[12] = '\0';
 
+        // TODO align every column
+        // TODO add "-> <target>" if file is a link
         ft_printf("%s %u %s %s %u %s %s\n", mode, st->st_nlink, user_buff, group_buff, st->st_size, mtime, file->name);
     }
     else
