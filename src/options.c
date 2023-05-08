@@ -124,7 +124,6 @@ _malloc_error:
     int err = errno;
 
     print_error("%s (%d)", strerror(err), err);
-    goto _error;
 
 _error:
     for (int i = 0; i < file_idx; ++i)
