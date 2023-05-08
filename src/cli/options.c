@@ -77,7 +77,7 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
                         if (ft_strcmp(argv[arg_idx] + 2, "help") == 0)
                         {
                             ctx->options |= LSOPT_HELP;
-                            goto _loop_end;
+                            return EXIT_SUCCESS;
                         }
 
                         print_error(
@@ -113,7 +113,6 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
         }
         else
             files[file_idx++] = ft_strdup(argv[arg_idx]);
-_loop_end:
     }
 
     if (file_idx == 0)
