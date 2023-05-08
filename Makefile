@@ -6,7 +6,7 @@
 #    By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/08 09:55:50 by bbrassar          #+#    #+#              #
-#    Updated: 2023/05/08 10:11:17 by bbrassar         ###   ########.fr        #
+#    Updated: 2023/05/08 11:02:22 by bbrassar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,7 @@ CFLAGS += -Wextra
 CFLAGS += -c
 CFLAGS += -MMD -MP
 CFLAGS += -I.
+CFLAGS += -g3
 
 LDFLAGS := -L $(dir $(NAME_LIBFT))
 LDLIBS := -lft
@@ -31,6 +32,7 @@ DIR_SRC := src
 DIR_OBJ := obj
 
 SRC := main.c
+SRC += cli/options.c
 OBJ := $(SRC:%.c=$(DIR_OBJ)/%.o)
 DEP := $(OBJ:.o=.d)
 
