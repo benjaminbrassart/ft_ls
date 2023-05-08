@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 18:34:40 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 20:37:20 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ int ls_exec(LsContext* ctx)
 
     free(ctx->files);
 
-    // TODO sort file names here
+    ls_sort(files, file_count, ctx->options, false);
 
     for (size_t i = 0; i < file_count; ++i)
     {

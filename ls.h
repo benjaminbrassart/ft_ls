@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 10:20:24 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 17:31:25 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 18:57:52 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ extern "C" {
 
 # include "libft/ft.h"
 
+# include <stdbool.h>
 # include <unistd.h>
 # include <sys/stat.h>
 
@@ -108,6 +109,17 @@ typedef struct file_info
  * @return EXIT_OK, EXIT_MINOR or EXIT_MAJOR
  */
 int ls_exec(LsContext* ctx);
+
+/**
+ * Sort FILES according to OPTIONS
+ *
+ * @param files the files to sort
+ * @param count the number of elements in FILES
+ * @param options the options (usually from context)
+ * @param dir_last whether the non-directory files should appear before
+ * directory files, regardless of options
+ */
+void ls_sort(FileInfo* files, size_t count, int options, bool dir_last);
 
 # ifdef __cplusplus
 }

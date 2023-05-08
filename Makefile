@@ -6,7 +6,7 @@
 #    By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/05/08 09:55:50 by bbrassar          #+#    #+#              #
-#    Updated: 2023/05/08 13:59:42 by bbrassar         ###   ########.fr        #
+#    Updated: 2023/05/08 18:38:36 by bbrassar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,6 +34,7 @@ DIR_OBJ := obj
 SRC := main.c
 SRC += options.c
 SRC += exec.c
+SRC += sort.c
 OBJ := $(SRC:%.c=$(DIR_OBJ)/%.o)
 DEP := $(OBJ:.o=.d)
 

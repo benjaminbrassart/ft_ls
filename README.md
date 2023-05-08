@@ -27,4 +27,4 @@ The `ls` command in itself:
 - [ls(1) &ndash; Linux manual page](https://man7.org/linux/man-pages/man1/ls.1.html)
 
 Internal mechanisms:
-- [Merge sort &ndash; Wikipedia](https://en.wikipedia.org/wiki/Merge_sort)
+- [Quicksort &ndash; Wikipedia](https://en.wikipedia.org/wiki/Quicksort)
