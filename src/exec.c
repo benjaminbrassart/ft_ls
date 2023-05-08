@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 21:36:35 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 23:35:07 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@
 #include <sys/stat.h>
 
 static void __print_file(FileInfo const* file, int first, int last, int options);
+static int __print_dir(FileInfo* file, char const* parent, bool print_name, int options);
+static void __remove_trailing_slashes(char* path);
 
 /*
 
@@ -81,6 +83,7 @@ int ls_exec(LsContext* ctx)
             : &files[file_count++];
         fi->st = st;
         fi->name = ctx->files[i];
+        fi->dot_dotdot = false;
     }
 
     free(ctx->files);
@@ -100,18 +103,16 @@ int ls_exec(LsContext* ctx)
 
     ls_sort(directories, dir_count, ctx->options, false);
 
+    bool print_name;
+
     for (size_t i = 0; i < dir_count; ++i)
     {
-        // if ((dir_count > 1 && i > 0) || ((CHECK_OPT(ctx->options, LSOPT_RECURSIVE) && file_count > 0)))
-        if (dir_count > 1 || ctx->file_count > dir_count || CHECK_OPT(ctx->options, LSOPT_RECURSIVE))
-        {
-            if (i > 0)
-                write(STDOUT_FILENO, "\n", 1);
-            ft_printf("%s:\n", directories[i].name);
-        }
+        if (i > 0)
+            write(STDOUT_FILENO, "\n", 1);
 
-        // TODO print what is inside directories
+        print_name = (dir_count > 1 || ctx->file_count > dir_count || CHECK_OPT(ctx->options, LSOPT_RECURSIVE));
 
+        __print_dir(&directories[i], NULL, print_name, ctx->options);
         free(directories[i].name);
     }
 
@@ -250,4 +251,140 @@ static void __print_file(FileInfo const* file, int first, int last, int options)
     }
     else
         ft_printf(first ? "%s " : last ? " %s" : " %s ", file->name);
+}
+
+static void __remove_trailing_slashes(char* path)
+{
+    size_t len = ft_strlen(path);
+
+    while (len > 0 && path[--len] == '/')
+        path[len] = '\0';
+}
+
+static int __print_dir(FileInfo* file, char const* parent, bool print_name, int options)
+{
+    size_t name_len = ft_strlen(file->name);
+
+    if (parent != NULL)
+    {
+        size_t parent_len = ft_strlen(parent);
+        size_t new_name_len = (name_len + parent_len + 2);
+        char* new_name = malloc(sizeof (*new_name) * new_name_len);
+
+        if (new_name == NULL)
+            goto _malloc_error;
+
+        ft_strlcpy(new_name, parent, new_name_len);
+        ft_strlcat(new_name, "/", new_name_len);
+        ft_strlcat(new_name, file->name, new_name_len);
+        free(file->name);
+        file->name = new_name;
+    }
+
+    DIR* dir = opendir(file->name);
+
+    if (dir == NULL)
+    {
+        int err = errno;
+
+        print_error("cannot open directory '%s': %s (%d)", file->name, strerror(err), err);
+        return EXIT_MAJOR;
+    }
+
+    size_t files_capacity = 128;
+    size_t file_count = 0;
+    FileInfo* files = malloc(sizeof (*files) * files_capacity);
+
+    if (files == NULL)
+        goto _malloc_error;
+
+    if (print_name)
+        ft_printf("%s:\n", file->name);
+
+    struct dirent* entry;
+    int result = EXIT_OK;
+
+    // Reset errno.
+    // Readdir will return NULL at the end without changing errno.
+    // If an error occurs, readdir will also return NULL but will set errno to
+    // The code of the error.
+    errno = 0;
+
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (entry->d_name[0] == '.' && !CHECK_OPT(options, LSOPT_ALL))
+            continue;
+
+        if (file_count >= files_capacity)
+        {
+            FileInfo* new_files = malloc(sizeof (*files) * (files_capacity * 2));
+
+            if (new_files == NULL)
+                goto _malloc_error;
+
+            ft_memcpy(new_files, files, sizeof (*files) * file_count);
+            free(files);
+            files = new_files;
+        }
+
+        files[file_count].dot_dotdot = entry->d_name[0] == '.' && ((entry->d_name[1] == '.' && entry->d_name[2] == '\0') || entry->d_name[1] == '\0');
+
+        size_t file_name_len = sizeof (entry->d_name) + ft_strlen(file->name) + 1;
+        char* file_name = malloc(sizeof (*file_name) * (file_name_len + 1));
+
+        if (file_name == NULL)
+            goto _malloc_error;
+
+        *file_name = '\0';
+
+        if (parent != NULL)
+        {
+            ft_strlcat(file_name, parent, file_name_len);
+            ft_strlcat(file_name, "/", file_name_len);
+        }
+        ft_strlcat(file_name, entry->d_name, file_name_len);
+
+        files[file_count].name = file_name;
+
+        if (lstat(file_name, &files[file_count].st) == -1)
+        {
+            int err = errno;
+
+            print_error("cannot stat HERE '%s': %s (%d)", file_name, strerror(err), err);
+            result = EXIT_MAJOR;
+        }
+
+        ++file_count;
+    }
+
+    ls_sort(files, file_count, options, false);
+
+    for (size_t i = 0; i < file_count; ++i)
+        __print_file(&files[i], i == 0, i == file_count - 1, options);
+
+    if (CHECK_OPT(options, LSOPT_RECURSIVE))
+    {
+        int recurs_result;
+
+        __remove_trailing_slashes(file->name);
+
+        for (size_t i = 0; i < file_count; ++i)
+        {
+            if (!files[i].dot_dotdot && S_ISDIR(files[i].st.st_mode))
+            {
+                recurs_result = __print_dir(&files[i], parent == NULL ? "." : file->name, print_name, options);
+                if (recurs_result > result)
+                    result = recurs_result;
+            }
+        }
+    }
+
+    return result;
+
+_malloc_error:
+    int err = errno;
+
+    print_error("%s (%d)", strerror(err), err);
+
+    return EXIT_MAJOR;
 }

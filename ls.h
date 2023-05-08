@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 10:20:24 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 18:57:52 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 23:08:14 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,8 +97,12 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx);
 
 typedef struct file_info
 {
+    // the name of the file
     char* name;
+    // the stat of the file
     struct stat st;
+    // whether the file is . or ..
+    bool dot_dotdot;
 } FileInfo;
 
 /**
