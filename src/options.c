@@ -38,12 +38,7 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
     char** files = malloc(sizeof (*files) * argc);
 
     if (files == NULL)
-    {
-        int err = errno;
-
-        print_error("%s (%d)", strerror(err), err);
-        return EXIT_MAJOR;
-    }
+        goto _malloc_error;
 
     int file_idx = 0;
     bool keep_opts = true;
@@ -114,18 +109,26 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
                 }
             }
         }
-        else
-            files[file_idx++] = ft_strdup(argv[arg_idx]);
+        else if ((files[file_idx++] = ft_strdup(argv[arg_idx])) == NULL)
+            goto _malloc_error;
     }
 
-    if (file_idx == 0)
-        files[file_idx++] = ft_strdup(".");
+    if (file_idx == 0 && (files[file_idx++] = ft_strdup(".")) == NULL)
+        goto _malloc_error;
 
     ctx->files = files;
     ctx->file_count = file_idx;
     return EXIT_OK;
 
+_malloc_error:
+    int err = errno;
+
+    print_error("%s (%d)", strerror(err), err);
+    goto _error;
+
 _error:
+    for (int i = 0; i < file_idx; ++i)
+        free(files[i]);
     free(files);
     return EXIT_MAJOR;
 }
