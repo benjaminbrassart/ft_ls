@@ -77,6 +77,9 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
                         if (ft_strcmp(argv[arg_idx] + 2, "help") == 0)
                         {
                             ctx->options |= LSOPT_HELP;
+                            for (int i = 0; i < file_idx; ++i)
+                                free(files[i]);
+                            free(files);
                             return EXIT_SUCCESS;
                         }
 
