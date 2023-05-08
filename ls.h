@@ -6,13 +6,18 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 10:20:24 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 11:01:01 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 12:14:00 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LS_H
 # define LS_H
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+# include "libft/ft.h"
 # include <unistd.h>
 
 /**
@@ -45,11 +50,13 @@ typedef unsigned char BitField;
  * The execution context of the ls command
  *
  * @param files the files requested by the command
+ * @param file_count the number of files in the files array
  * @param options the option bits
  */
 typedef struct ls_context
 {
     char** files;
+    size_t file_count;
     BitField options;
 } LsContext;
 
@@ -77,5 +84,10 @@ void cli_free(LsContext* ctx);
  * @return EXIT_SUCCESS or EXIT_FAILURE
  */
 int cli_parse(int argc, char const* argv[], LsContext* ctx);
+
+
+# ifdef __cplusplus
+}
+# endif
 
 #endif // LS_H

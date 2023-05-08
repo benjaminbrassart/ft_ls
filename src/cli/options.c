@@ -21,6 +21,7 @@
 void cli_init(LsContext* ctx)
 {
     ctx->files = NULL;
+    ctx->file_count = 0;
     ctx->options = LSOPT_INIT;
 }
 
@@ -78,8 +79,11 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
         }
     }
 
-    files[file_idx] = NULL;
+    if (file_idx == 0)
+        files[file_idx++] = ".";
+
     ctx->files = files;
+    ctx->file_count = file_idx;
     return EXIT_SUCCESS;
 
 _error:
