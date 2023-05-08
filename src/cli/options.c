@@ -48,7 +48,7 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
     int file_idx = 0;
     bool keep_opts = true;
 
-    for (int arg_idx = 0; arg_idx < argc; ++arg_idx)
+    for (int arg_idx = 1; arg_idx < argc; ++arg_idx)
     {
         if (keep_opts && argv[arg_idx][0] == '-')
         {
