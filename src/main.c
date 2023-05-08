@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 09:59:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 13:10:59 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 14:08:04 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,7 @@ int main(int argc, char const* argv[])
         return EXIT_OK;
     }
 
-    cli_free(&ctx);
-    return EXIT_OK;
+    return ls_exec(&ctx);
 }
 
 static char const USAGE_MESSAGE[] =

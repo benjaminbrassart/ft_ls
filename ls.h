@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 10:20:24 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 13:12:33 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 13:59:23 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,15 @@ void cli_free(LsContext* ctx);
  * @return EXIT_OK or EXIT_MAJOR
  */
 int cli_parse(int argc, char const* argv[], LsContext* ctx);
+
+/**
+ * Execute the ls command core
+ *
+ * @param ctx the execution context
+ *
+ * @return EXIT_OK, EXIT_MINOR or EXIT_MAJOR
+ */
+int ls_exec(LsContext* ctx);
 
 # ifdef __cplusplus
 }
