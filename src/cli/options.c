@@ -14,6 +14,7 @@
 #include "libft/ft.h"
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -27,6 +28,8 @@ void cli_init(LsContext* ctx)
 
 void cli_free(LsContext* ctx)
 {
+    for (size_t i = 0; i < ctx->file_count; ++i)
+        free(ctx->files[i]);
     free(ctx->files);
 }
 
@@ -43,15 +46,46 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
     }
 
     int file_idx = 0;
+    bool keep_opts = true;
 
-    for (int arg_idx = 1; arg_idx < argc; ++arg_idx)
+    for (int arg_idx = 0; arg_idx < argc; ++arg_idx)
     {
-        if (argv[arg_idx][0] == '-')
+        if (keep_opts && argv[arg_idx][0] == '-')
         {
             for (int char_idx = 1; argv[arg_idx][char_idx] != '\0'; ++char_idx)
             {
                 switch (argv[arg_idx][char_idx])
                 {
+                    case '-':
+                        if (char_idx != 1)
+                        {
+                            print_error(
+                                "invalid option -- '-'\n"
+                                "Try 'ft_ls --help' for more information."
+                            );
+                            goto _error;
+                        }
+
+                        if (argv[arg_idx][char_idx + 1] == '\0') // arg == "--"
+                        {
+                            keep_opts = false;
+                            break;
+                        }
+
+                        ++char_idx;
+
+                        if (ft_strcmp(argv[arg_idx] + 2, "help") == 0)
+                        {
+                            ctx->options |= LSOPT_HELP;
+                            goto _loop_end;
+                        }
+
+                        print_error(
+                            "invalid option -- '%s'\n"
+                            "Try 'ft_ls --help' for more information.",
+                            argv[arg_idx]
+                        );
+                        goto _error;
                     case 'l':
                         ctx->options |= LSOPT_LONG;
                         break;
@@ -77,10 +111,13 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
                 }
             }
         }
+        else
+            files[file_idx++] = ft_strdup(argv[arg_idx]);
+_loop_end:
     }
 
     if (file_idx == 0)
-        files[file_idx++] = ".";
+        files[file_idx++] = ft_strdup(".");
 
     ctx->files = files;
     ctx->file_count = file_idx;

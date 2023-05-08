@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 10:20:24 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 12:14:00 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/08 12:38:55 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ extern "C" {
 # define LSOPT_REVERSE      (1 << 3)
 // -t option
 # define LSOPT_SORT_TIME    (1 << 4)
-// -? option
+// --help option
 # define LSOPT_HELP         (1 << 5)
 
 /**
