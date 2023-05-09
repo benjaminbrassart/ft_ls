@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/09 22:05:27 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/09 23:10:14 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -312,7 +312,10 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
     FileInfo* files = malloc(sizeof (*files) * files_capacity);
 
     if (files == NULL)
+    {
+        closedir(dir);
         goto _malloc_error;
+    }
 
     if (print_name)
         ft_printf("%s:\n", file->name);
@@ -336,7 +339,10 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
             FileInfo* new_files = malloc(sizeof (*files) * (files_capacity * 2));
 
             if (new_files == NULL)
+            {
+                closedir(dir);
                 goto _malloc_error;
+            }
 
             ft_memcpy(new_files, files, sizeof (*files) * file_count);
             free(files);
@@ -349,7 +355,10 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
         char* file_name = malloc(sizeof (*file_name) * (file_name_len + 1));
 
         if (file_name == NULL)
+        {
+            closedir(dir);
             goto _malloc_error;
+        }
 
         *file_name = '\0';
 
@@ -372,6 +381,8 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
 
         ++file_count;
     }
+
+    closedir(dir);
 
     ls_sort(files, file_count, options, false);
 
