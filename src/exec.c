@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/09 21:50:33 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/09 22:05:27 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,6 +213,8 @@ static void __print_file(FileInfo const* file, int first, int last, int options)
     {
         struct stat const* st = &file->st;
 
+        // TODO sticky bit is always 't' or 'T', regardless of the file type
+        // TODO setuid/setgid bit is always 's' or 'S', regardless of the file type
         char mode[] = {
             __type_char(st->st_mode),
             __perm_char(st->st_mode, S_IRUSR, 'r'),
