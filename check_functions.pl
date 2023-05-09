@@ -17,7 +17,6 @@ foreach my $line (@lines) {
     chomp $line;
 
     next unless $line =~ s/\s+U (?!_)(\w+).*/$1/;
-
     next if exists $functions{$line};
 
     print "$line\n";
