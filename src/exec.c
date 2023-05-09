@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 23:35:07 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/09 21:50:33 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,9 +245,23 @@ static void __print_file(FileInfo const* file, int first, int last, int options)
         char* mtime = ctime(&st->st_mtim.tv_sec) + 4;
         mtime[12] = '\0';
 
+        char file_name[PATH_MAX * 2 + 3];
+
+        ft_strlcpy(file_name, file->name, sizeof (file_name));
+
+        if (S_ISLNK(file->st.st_mode))
+        {
+            size_t file_name_len = ft_strlcat(file_name, " -> ", sizeof (file_name));
+            ssize_t readlink_res = readlink(file->name, file_name + file_name_len, sizeof (file_name) - file_name_len);
+
+            if (readlink_res == -1)
+                ft_strlcat(file_name, "<error>", sizeof (file_name));
+            else
+                file_name[file_name_len + readlink_res] = '\0';
+        }
+
         // TODO align every column
-        // TODO add "-> <target>" if file is a link
-        ft_printf("%s %u %s %s %u %s %s\n", mode, st->st_nlink, user_buff, group_buff, st->st_size, mtime, file->name);
+        ft_printf("%s %u %s %s %u %s %s\n", mode, st->st_nlink, user_buff, group_buff, st->st_size, mtime, file_name);
     }
     else
         ft_printf(first ? "%s " : last ? " %s" : " %s ", file->name);
