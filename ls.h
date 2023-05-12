@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 10:20:24 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 23:08:14 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/12 07:31:16 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,18 @@ extern "C" {
 
 # include "libft/ft.h"
 
+# include <limits.h>
 # include <stdbool.h>
 # include <unistd.h>
 # include <sys/stat.h>
+
+# include <stdio.h>
+
+// TODO fix ft_*printf precision and field width
+# define ft_printf printf
+# define ft_snprintf snprintf
+
+# define DISPLAY_NAME_MAX (NAME_MAX + sizeof (" -> ") + PATH_MAX)
 
 // returned when something was successful
 # define EXIT_OK 0
@@ -99,11 +108,28 @@ typedef struct file_info
 {
     // the name of the file
     char* name;
+    // the name that will be displayed for the file
+    char display_name[DISPLAY_NAME_MAX];
+    size_t display_name_len;
+    // the name of the owning user
+    char user[LOGIN_NAME_MAX];
+    size_t user_len;
+    // the name of the owning group
+    char group[LOGIN_NAME_MAX];
+    size_t group_len;
     // the stat of the file
     struct stat st;
     // whether the file is . or ..
     bool dot_dotdot;
 } FileInfo;
+
+typedef struct file_info_align
+{
+    int links;
+    int user;
+    int group;
+    int size;
+} FileInfoAlign;
 
 /**
  * Execute the ls command core

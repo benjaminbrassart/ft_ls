@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/12 05:54:37 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/12 07:31:26 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,52 @@
 #include <sys/dir.h>
 #include <sys/stat.h>
 
-static void __print_file(FileInfo const* file, int first, int last, int options);
+static int int_max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
+static int int_length(int n)
+{
+    int len = 1;
+
+    while (n >= 10)
+    {
+        n /= 10;
+        ++len;
+    }
+    return len;
+}
+
+static void __update_file_data(FileInfo* file, FileInfoAlign* align, int options);
+static void __print_file(FileInfo const* file, FileInfoAlign const* align, int first, int last, int options);
 static int __print_dir(FileInfo* file, char const* parent, bool print_name, int options);
 static void __remove_trailing_slashes(char* path);
+
+static char __exec_char(mode_t mode, mode_t perm, mode_t alt, char c)
+{
+    if (mode & perm)
+        return mode & alt ? c : 'x';
+    else
+        return mode & alt ? ft_toupper(c) : '-';
+}
+
+static char __type_char(mode_t mode)
+{
+    switch (mode & __S_IFMT)
+    {
+        case S_IFREG:  return '-';
+        case S_IFDIR:  return 'd';
+        case S_IFCHR:  return 'c';
+        case S_IFBLK:  return 'b';
+        case S_IFIFO:  return 'p';
+        case S_IFLNK:  return 'l';
+        case S_IFSOCK: return 's';
+        default:       return '?';
+    }
+}
+
+#define __perm_char(Mode, Perm, Char) ((Mode & Perm) ? Char : '-')
 
 /*
 
@@ -90,11 +133,15 @@ int ls_exec(LsContext* ctx)
 
     ls_sort(files, file_count, ctx->options, false);
 
+    FileInfoAlign algn;
+
+    ft_memset(&algn, 0, sizeof (algn));
+
     for (size_t i = 0; i < file_count; ++i)
-    {
-        __print_file(&files[i], i == 0, i == file_count - 1, ctx->options);
-        free(files[i].name);
-    }
+        __update_file_data(&files[i], &algn, ctx->options);
+
+    for (size_t i = 0; i < file_count; ++i)
+        __print_file(&files[i], &algn, i == 0, i == file_count - 1, ctx->options);
 
     free(files);
 
@@ -120,153 +167,95 @@ int ls_exec(LsContext* ctx)
     return status;
 }
 
-#define EXEC_ALT    (1 << 0)
-#define EXEC_PERM   (1 << 1)
-#define EXEC_DIR    (1 << 2)
-
-/**
- * Get the character that will be used for the execution permission char
- *
- * @param mode the mode of the file, usually from stat(2)
- * @param perm the permission to be checked (S_IXUSR, S_IXGRP or S_IXOTH)
- * @param alt the alternative mode (sticky bit, setuid bit or setgid bit)
- * to be checked (S_ISUID, S_ISGRP or S_ISVTX)
- *
- * @return the right character for the file mode
- *
- * @details
- * Truth table:
- *
- * DEC = decimal reprentation of DIR + PERM + ALT
- * DIR = is the file a directory?
- * PERM = is perm set for the directory mode?
- * ALT = is alt set for the directoy mode?
- * R = the resulting character
- *
- * +-----+-----+------+-----+---+
- * | DEC | DIR | PERM | ALT | R |
- * +-----+-----+------+-----+---+
- * |   0 |   0 |    0 |   0 | - |
- * |   1 |   0 |    0 |   1 | S |
- * |   2 |   0 |    1 |   0 | x |
- * |   3 |   0 |    1 |   1 | s |
- * |   4 |   1 |    0 |   0 | - |
- * |   5 |   1 |    0 |   1 | T |
- * |   6 |   1 |    1 |   0 | x |
- * |   7 |   1 |    1 |   1 | t |
- * +-----+-----+------+-----+---+
- */
-static char __exec_char(mode_t mode, int perm, int alt)
+static void __update_file_data(FileInfo* file, FileInfoAlign* align, int options)
 {
-    unsigned int bits = 0
-        | (S_ISDIR(mode) ? EXEC_DIR : 0)
-        | ((mode & perm) ? EXEC_PERM : 0)
-        | ((mode & alt) ? EXEC_ALT : 0);
+    file->display_name_len = ft_strlcpy(file->display_name, file->name, sizeof (file->display_name));
 
-    switch (bits)
+    if (!CHECK_OPT(options, LSOPT_LONG))
     {
-        case 0:
-        case EXEC_DIR:
-            return '-';
-        case EXEC_PERM:
-        case EXEC_DIR | EXEC_PERM:
-            return 'x';
-        case EXEC_ALT:
-            return 'S';
-        case EXEC_ALT | EXEC_PERM:
-            return 's';
-        case EXEC_ALT | EXEC_DIR:
-            return 'T';
-        case EXEC_ALT | EXEC_PERM | EXEC_DIR:
-            return 't';
-        default: // should never happen, terminates the program
-            ft_dprintf(STDERR_FILENO,
-                "Internal error for %s:%d\n"
-                "Value of `bits`: %u\n"
-                "THIS IS A BUG, please report it!\n",
-                __func__, __LINE__, bits
-            );
-            exit(128 + SIGILL);
+        free(file->name);
+        return;
     }
+
+    struct stat const* st = &file->st;
+
+    if (S_ISLNK(st->st_mode))
+    {
+        file->display_name_len = ft_strlcat(file->display_name, " -> ", sizeof (file->display_name));
+
+        ssize_t readlink_res = readlink(file->name, file->display_name + file->display_name_len, sizeof (file->display_name) - file->display_name_len);
+
+        if (readlink_res == -1)
+            file->display_name_len = ft_strlcat(file->display_name, "<readlink error>", sizeof (file->display_name));
+        else
+        {
+            file->display_name_len += readlink_res;
+            file->display_name[file->display_name_len] = '\0';
+        }
+    }
+
+    free(file->name);
+
+    struct passwd const* usr = getpwuid(st->st_uid);
+
+    if (usr == NULL)
+        file->user_len = ft_snprintf(file->user, sizeof (file->user), "%u", st->st_uid);
+    else
+        file->user_len = ft_strlcat(file->user, usr->pw_name, sizeof (file->user));
+
+    struct group const* grp = getgrgid(st->st_gid);
+
+    if (grp == NULL)
+        file->group_len = ft_snprintf(file->group, sizeof (file->group), "%u", st->st_gid);
+    else
+        file->group_len = ft_strlcat(file->group, grp->gr_name, sizeof (file->group));
+
+    align->user = int_max(align->user, file->user_len);
+    align->group = int_max(align->group, file->group_len);
+    align->links = int_max(align->links, int_length(st->st_nlink));
+    align->size = int_max(align->size, int_length(st->st_size));
 }
 
-static char __type_char(mode_t mode)
-{
-    switch (mode & __S_IFMT)
-    {
-        case S_IFREG:  return '-';
-        case S_IFDIR:  return 'd';
-        case S_IFCHR:  return 'c';
-        case S_IFBLK:  return 'b';
-        case S_IFIFO:  return 'p';
-        case S_IFLNK:  return 'l';
-        case S_IFSOCK: return 's';
-        default:       return '?';
-    }
-}
-
-#define __perm_char(Mode, Perm, Char) ((Mode & Perm) ? Char : '-')
-
-static void __print_file(FileInfo const* file, int first, int last, int options)
+static void __print_file(FileInfo const* file, FileInfoAlign const* align, int first, int last, int options)
 {
     if (CHECK_OPT(options, LSOPT_LONG))
     {
         struct stat const* st = &file->st;
-
-        // TODO sticky bit is always 't' or 'T', regardless of the file type
-        // TODO setuid/setgid bit is always 's' or 'S', regardless of the file type
-        char mode[] = {
+        char const mode[] = {
             __type_char(st->st_mode),
             __perm_char(st->st_mode, S_IRUSR, 'r'),
             __perm_char(st->st_mode, S_IWUSR, 'w'),
-            __exec_char(st->st_mode, S_IXUSR, S_ISUID),
+            __exec_char(st->st_mode, S_IXUSR, S_ISUID, 's'),
             __perm_char(st->st_mode, S_IRGRP, 'r'),
             __perm_char(st->st_mode, S_IWGRP, 'w'),
-            __exec_char(st->st_mode, S_IXGRP, S_ISGID),
+            __exec_char(st->st_mode, S_IXGRP, S_ISGID, 's'),
             __perm_char(st->st_mode, S_IROTH, 'r'),
             __perm_char(st->st_mode, S_IWOTH, 'w'),
-            __exec_char(st->st_mode, S_IXOTH, S_ISVTX),
-            '\0',
+            __exec_char(st->st_mode, S_IXOTH, S_ISVTX, 't'),
         };
-        struct passwd* usr = getpwuid(st->st_uid);
-        struct group* grp = getgrgid(st->st_gid);
 
-        char user_buff[LOGIN_NAME_MAX + 1];
-        char group_buff[LOGIN_NAME_MAX + 1];
+        char const* mtime = ctime(&st->st_mtim.tv_sec);
 
-        if (usr == NULL)
-            ft_snprintf(user_buff, sizeof (user_buff), "%u", st->st_uid);
-        else
-            ft_strlcpy(user_buff, usr->pw_name, sizeof (user_buff));
-
-        if (grp == NULL)
-            ft_snprintf(group_buff, sizeof (group_buff), "%u", st->st_uid);
-        else
-            ft_strlcpy(group_buff, grp->gr_name, sizeof (group_buff));
-
-        char* mtime = ctime(&st->st_mtim.tv_sec) + 4;
-        mtime[12] = '\0';
-
-        char file_name[PATH_MAX * 2 + 3];
-
-        ft_strlcpy(file_name, file->name, sizeof (file_name));
-
-        if (S_ISLNK(file->st.st_mode))
-        {
-            size_t file_name_len = ft_strlcat(file_name, " -> ", sizeof (file_name));
-            ssize_t readlink_res = readlink(file->name, file_name + file_name_len, sizeof (file_name) - file_name_len);
-
-            if (readlink_res == -1)
-                ft_strlcat(file_name, "<error>", sizeof (file_name));
-            else
-                file_name[file_name_len + readlink_res] = '\0';
-        }
-
-        // TODO align every column
-        ft_printf("%s %u %s %s %u %s %s\n", mode, st->st_nlink, user_buff, group_buff, st->st_size, mtime, file_name);
+        ft_printf(
+            "%.10s %*lu %*s %*s %*ld %.12s %s\n",
+            mode,
+            align->links, st->st_nlink,
+            align->user, file->user,
+            align->group, file->group,
+            align->size, st->st_size,
+            mtime + 4,
+            file->display_name
+        );
     }
     else
-        ft_printf(first ? "%s " : last ? " %s" : " %s ", file->name);
+    {
+        if (first)
+            ft_printf("%s ", file->display_name);
+        else if (last)
+            ft_printf(" %s", file->display_name);
+        else
+            ft_printf(" %s ", file->display_name);
+    }
 }
 
 static void __remove_trailing_slashes(char* path)
@@ -386,8 +375,15 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
 
     ls_sort(files, file_count, options, false);
 
+    FileInfoAlign algn;
+
+    ft_memset(&algn, 0, sizeof (algn));
+
     for (size_t i = 0; i < file_count; ++i)
-        __print_file(&files[i], i == 0, i == file_count - 1, options);
+        __update_file_data(&files[i], &algn, options);
+
+    for (size_t i = 0; i < file_count; ++i)
+        __print_file(&files[i], &algn, i == 0, i == file_count - 1, options);
 
     if (CHECK_OPT(options, LSOPT_RECURSIVE))
     {
