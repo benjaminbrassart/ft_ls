@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/12 05:42:32 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/12 05:54:37 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ int ls_exec(LsContext* ctx)
         FileInfo *fi = S_ISDIR(st.st_mode)
             ? &directories[dir_count++]
             : &files[file_count++];
-        fi->st = st;
+        ft_memcpy(&fi->st, &st, sizeof (fi->st));
         fi->name = ctx->files[i];
         fi->dot_dotdot = false;
     }

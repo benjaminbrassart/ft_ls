@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 14:02:50 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/08 21:05:37 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/12 05:36:28 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,20 +32,21 @@ void __quicksort(FileInfo* files, ssize_t left, ssize_t right, int options, bool
     ssize_t i = left;
     ssize_t j = right;
 
-    FileInfo pivot = files[(left + right) / 2];
+    FileInfo const* pivot = &files[(left + right) / 2];
 
     while (i <= j)
     {
-        while (__compare(&files[i], &pivot, options, dir_last) < 0)
+        while (__compare(&files[i], pivot, options, dir_last) < 0)
             ++i;
-        while (__compare(&files[j], &pivot, options, dir_last) > 0)
+        while (__compare(&files[j], pivot, options, dir_last) > 0)
             --j;
         if (i <= j)
         {
-            FileInfo tmp = files[i];
+            FileInfo tmp;
 
-            files[i] = files[j];
-            files[j] = tmp;
+            ft_memcpy(&tmp, &files[i], sizeof (tmp));
+            ft_memcpy(&files[i], &files[j], sizeof (*files));
+            ft_memcpy(&files[j], &tmp, sizeof (*files));
             ++i;
             --j;
         }
