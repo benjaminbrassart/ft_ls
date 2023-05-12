@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/12 07:31:26 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/12 08:01:54 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,29 @@
 #include <sys/dir.h>
 #include <sys/stat.h>
 
-static int int_max(int a, int b)
+static signed long long signed_max(signed long long a, signed long long b)
 {
     return a > b ? a : b;
 }
 
-static int int_length(int n)
+static int signed_length(signed long long n)
+{
+    int len = 1;
+
+    while (n >= 10)
+    {
+        n /= 10;
+        ++len;
+    }
+    return len;
+}
+
+static unsigned long long unsigned_max(unsigned long long a, unsigned long long b)
+{
+    return a > b ? a : b;
+}
+
+static int unsigned_length(unsigned long long n)
 {
     int len = 1;
 
@@ -159,6 +176,7 @@ int ls_exec(LsContext* ctx)
 
         print_name = (dir_count > 1 || ctx->file_count > dir_count || CHECK_OPT(ctx->options, LSOPT_RECURSIVE));
 
+        printf("directory[i].name = \"%s\"\n", directories[i].name);
         __print_dir(&directories[i], NULL, print_name, ctx->options);
         free(directories[i].name);
     }
@@ -210,10 +228,10 @@ static void __update_file_data(FileInfo* file, FileInfoAlign* align, int options
     else
         file->group_len = ft_strlcat(file->group, grp->gr_name, sizeof (file->group));
 
-    align->user = int_max(align->user, file->user_len);
-    align->group = int_max(align->group, file->group_len);
-    align->links = int_max(align->links, int_length(st->st_nlink));
-    align->size = int_max(align->size, int_length(st->st_size));
+    align->user = signed_max(align->user, file->user_len);
+    align->group = signed_max(align->group, file->group_len);
+    align->links = unsigned_max(align->links, unsigned_length(st->st_nlink));
+    align->size = signed_max(align->size, signed_length(st->st_size));
 }
 
 static void __print_file(FileInfo const* file, FileInfoAlign const* align, int first, int last, int options)
@@ -269,6 +287,7 @@ static void __remove_trailing_slashes(char* path)
 static int __print_dir(FileInfo* file, char const* parent, bool print_name, int options)
 {
     size_t name_len = ft_strlen(file->name);
+    FileInfo* files = NULL;
 
     if (parent != NULL)
     {
@@ -298,7 +317,8 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
 
     size_t files_capacity = 128;
     size_t file_count = 0;
-    FileInfo* files = malloc(sizeof (*files) * files_capacity);
+
+    files = malloc(sizeof (*files) * files_capacity);
 
     if (files == NULL)
     {
@@ -349,24 +369,20 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
             goto _malloc_error;
         }
 
-        *file_name = '\0';
-
-        if (parent != NULL)
-        {
-            ft_strlcat(file_name, parent, file_name_len);
-            ft_strlcat(file_name, "/", file_name_len);
-        }
+        ft_strlcpy(file_name, file->name, file_name_len);
+        __remove_trailing_slashes(file_name);
+        ft_strlcat(file_name, "/", file_name_len);
         ft_strlcat(file_name, entry->d_name, file_name_len);
-
-        files[file_count].name = file_name;
 
         if (lstat(file_name, &files[file_count].st) == -1)
         {
             int err = errno;
 
-            print_error("cannot stat HERE '%s': %s (%d)", file_name, strerror(err), err);
+            print_error("cannot stat HERE '%s': %s (%d)", file_name, strerror(err), err); // TODO remove HERE
             result = EXIT_MAJOR;
         }
+
+        files[file_count].name = file_name;
 
         ++file_count;
     }
@@ -406,6 +422,8 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
 
 _malloc_error:
 {
+    free(files);
+
     int err = errno;
 
     print_error("%s (%d)", strerror(err), err);
