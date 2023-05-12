@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/12 08:01:54 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/12 08:14:29 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,7 +128,7 @@ int ls_exec(LsContext* ctx)
 
     for (size_t i = 0; i < ctx->file_count; ++i)
     {
-        if (stat(ctx->files[i], &st) == -1)
+        if (lstat(ctx->files[i], &st) == -1)
         {
             int err = errno;
 
@@ -315,7 +315,7 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
         return EXIT_MAJOR;
     }
 
-    size_t files_capacity = 128;
+    size_t files_capacity = 256;
     size_t file_count = 0;
 
     files = malloc(sizeof (*files) * files_capacity);
@@ -345,7 +345,8 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
 
         if (file_count >= files_capacity)
         {
-            FileInfo* new_files = malloc(sizeof (*files) * (files_capacity * 2));
+            files_capacity *= 2;
+            FileInfo* new_files = malloc(sizeof (*files) * files_capacity);
 
             if (new_files == NULL)
             {
