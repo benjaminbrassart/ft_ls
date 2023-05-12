@@ -6,7 +6,7 @@
 /*   By: bbrassar <bbrassar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/08 13:57:26 by bbrassar          #+#    #+#             */
-/*   Updated: 2023/05/09 23:10:14 by bbrassar         ###   ########.fr       */
+/*   Updated: 2023/05/12 05:42:32 by bbrassar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -409,9 +409,11 @@ static int __print_dir(FileInfo* file, char const* parent, bool print_name, int 
     return result;
 
 _malloc_error:
+{
     int err = errno;
 
     print_error("%s (%d)", strerror(err), err);
+}
 
     return EXIT_MAJOR;
 }

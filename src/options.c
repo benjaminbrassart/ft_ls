@@ -36,11 +36,11 @@ void cli_free(LsContext* ctx)
 int cli_parse(int argc, char const* argv[], LsContext* ctx)
 {
     char** files = malloc(sizeof (*files) * argc);
+    int file_idx = 0;
 
     if (files == NULL)
         goto _malloc_error;
 
-    int file_idx = 0;
     bool keep_opts = true;
 
     for (int arg_idx = 1; arg_idx < argc; ++arg_idx)
@@ -121,9 +121,11 @@ int cli_parse(int argc, char const* argv[], LsContext* ctx)
     return EXIT_OK;
 
 _malloc_error:
+{
     int err = errno;
 
     print_error("%s (%d)", strerror(err), err);
+}
 
 _error:
     for (int i = 0; i < file_idx; ++i)
