@@ -1,0 +1,13 @@
+name: functions
+on:
+  - push
+jobs:
+  check_functions:
+    name: Check forbidden function calls
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - run: make -j
+      - run: perl check_functions.pl
